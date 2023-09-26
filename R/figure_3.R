@@ -1,0 +1,132 @@
+# Differences in aetiology by HIV status 
+
+# Load packages
+library(tidyverse)
+library(readxl)
+library(patchwork)
+
+# Load and prepare data
+
+df_est <- read.csv("./estimates/hiv_estimates.csv") %>%
+  mutate(label = paste0(sprintf(est*100,fmt='%#.1f'),"%"))
+
+df_or <- read.csv("./estimates/hiv_or.csv")
+
+# Theme
+
+my_theme <- function(){
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        legend.box.spacing = unit(1, "pt"), 
+        legend.margin = margin(t=5,b=0,l=10,r=0),
+        legend.key.size = unit(0.3, 'cm'),
+        legend.position = "top",
+        panel.spacing = unit(0.2,"cm"),
+        axis.text = element_text(size = rel(1.0)),
+        axis.title = element_text(size = rel(1.1), face="bold"),
+        axis.title.x = element_text(margin = margin(t = 5)),
+        legend.text = element_text(size = rel(1.1)),
+        legend.title = element_blank(),
+        plot.tag = element_text(size=rel(1.25), face="bold"),
+        strip.text = element_text(color="black", size = rel(1.1), face="bold",vjust=1.5, hjust=0), # facet labels
+        axis.ticks = element_line(size = rel(1.0)),
+        strip.background = element_blank())
+}
+
+# Plot
+
+colour_hiv <- c("#4F4F4F","#54AFCC")    
+colour_label <- "grey20"
+
+plot_vd1 <- ggplot(df_est %>% filter(symptom == "Vaginal discharge") %>%
+                     mutate(rti = factor(rti, levels=c("MG","TV","BV","NG","CT","CS","None")))) +
+  geom_col(aes(x = est, y = reorder(rti, desc(rti)), fill = hiv_status), position = position_dodge2(0.7, reverse = TRUE), width = 0.7) +
+  geom_linerange(aes(xmin = lwr, xmax = upr, y = reorder(rti, desc(rti)), group = hiv_status), 
+                 position = position_dodge2(0.7, reverse = TRUE), size = 0.2) +
+  geom_label(aes(x = upr + 0.004, y = rti, group = hiv_status, label = label), position = position_dodge2(0.7, reverse = TRUE),
+             size = 6/.pt, label.size = NA, label.padding = unit(0.1,"lines"), hjust = 0, colour = colour_label) +
+  theme_classic(base_size = 6) +
+  my_theme() +
+  scale_x_continuous(labels = scales::label_percent(accuracy = 1), breaks=c(0,0.2,0.4,0.6,0.8,1),
+                     expand = expansion(mult = c(0.02, 0.04))) +
+  coord_cartesian(xlim = c(0, 1)) +   
+  scale_fill_manual(values=colour_hiv) +
+  labs(x="",y="Vaginal discharge",tag="A") 
+
+plot_ud1 <- ggplot(df_est %>% filter(symptom == "Urethral discharge") %>%
+                     mutate(rti = factor(rti, levels=c("TV","NG","MG","CT","None")))) +
+  geom_col(aes(x = est, y = reorder(rti, desc(rti)), fill = hiv_status), position = position_dodge2(0.7, reverse = TRUE), width = 0.7) +
+  geom_linerange(aes(xmin = lwr, xmax = upr, y = reorder(rti, desc(rti)), group = hiv_status), 
+                 position = position_dodge2(0.7, reverse = TRUE), size = 0.2) +
+  geom_label(aes(x = upr + 0.004, y = rti, group = hiv_status, label = label), position = position_dodge2(0.7, reverse = TRUE),
+             size = 6/.pt, label.size = NA, label.padding = unit(0.1,"lines"), hjust = 0, colour = colour_label) +
+  theme_classic(base_size = 6) +
+  my_theme() +
+  scale_x_continuous(labels = scales::label_percent(accuracy = 1), breaks=c(0,0.2,0.4,0.6,0.8,1),
+                     expand = expansion(mult = c(0.02, 0.04))) +
+  coord_cartesian(xlim = c(0, 1)) +   
+  scale_fill_manual(values=colour_hiv) +
+  labs(x="",y="Urethral discharge",tag="B") 
+
+plot_gu1 <- ggplot(df_est %>% filter(symptom == "Genital ulcer") %>%
+                     mutate(rti = factor(rti, levels=c("HSV","HSV-2","HSV-1","TP","LGV","HD","None")))) +
+  geom_col(aes(x = est, y = reorder(rti, desc(rti)), fill = hiv_status), position = position_dodge2(0.7, reverse = TRUE), width = 0.7) +
+  geom_linerange(aes(xmin = lwr, xmax = upr, y = reorder(rti, desc(rti)), group = hiv_status), 
+                 position = position_dodge2(0.7, reverse = TRUE), size = 0.2) +
+  geom_label(aes(x = upr + 0.004, y = rti, group = hiv_status, label = label), position = position_dodge2(0.7, reverse = TRUE),
+             size = 6/.pt, label.size = NA, label.padding = unit(0.1,"lines"), hjust = 0, colour = colour_label) +
+  theme_classic(base_size = 6) +
+  my_theme() +
+  scale_x_continuous(labels = scales::label_percent(accuracy = 1), breaks=c(0,0.2,0.4,0.6,0.8,1),
+                     expand = expansion(mult = c(0.02, 0.04))) +
+  coord_cartesian(xlim = c(0, 1)) +   
+  scale_fill_manual(values=colour_hiv) +
+  labs(x="Pooled diagnosed proportion",y="Genital ulcer",tag="C") 
+
+plot_vd2 <- ggplot(df_or %>% filter(symptom == "Vaginal discharge") %>%
+                     mutate(rti = factor(rti, levels=c("MG","TV","BV","NG","CT","CS","None")))) +
+  geom_pointrange(aes(x = or, xmin = lwr, xmax = upr, y = reorder(rti, desc(rti)), colour = variable), size = 0.06, linewidth = 0.2, fatten = 1.8) +
+  geom_vline(xintercept = 1, linetype = "dotted", linewidth = 0.2) +
+  geom_label(aes(x = or, y = rti, label = label), size = 6/.pt, label.size = NA, label.padding = unit(0.1,"cm"), hjust=0.48, nudge_y = 0.35, colour=colour_label) +
+  theme_classic(base_size = 6) +
+  my_theme() +
+  scale_x_continuous(breaks = c(0, 1, 2, 3),
+                     expand = expansion(mult = c(0.02, 0.02))) +
+  coord_trans(x = "log10", xlim = c(0.35,3.5)) +
+  scale_colour_manual(values="black", labels="aOR (95% CI) for HIV-positive") +
+  labs(x="",y="",colour="",fill="") 
+
+plot_ud2 <- ggplot(df_or %>% filter(symptom == "Urethral discharge") %>%
+                     mutate(rti = factor(rti, levels=c("TV","NG","MG","CT","None")))) +
+  geom_pointrange(aes(x = or, xmin = lwr, xmax = upr, y = reorder(rti, desc(rti)), colour = variable), size = 0.06, linewidth = 0.2, fatten = 1.8) +
+  geom_vline(xintercept = 1, linetype = "dotted", linewidth = 0.2) +
+  geom_label(aes(x = or, y = rti, label = label), size = 6/.pt, label.size = NA, label.padding = unit(0.1,"cm"), hjust=0.48, nudge_y = 0.35, colour=colour_label) +
+  theme_classic(base_size = 6) +
+  my_theme() +
+  scale_x_continuous(breaks = c(0, 1, 2, 3),
+                     expand = expansion(mult = c(0.02, 0.02))) +
+  coord_trans(x = "log10", xlim = c(0.35,3.5)) +
+  scale_colour_manual(values="black", labels="aOR (95% CI) for HIV-positive") +
+  labs(x="",y="",colour="",fill="") 
+
+plot_gu2 <- ggplot(df_or %>% filter(symptom == "Genital ulcer") %>%
+                     mutate(rti = factor(rti, levels=c("HSV","HSV-2","HSV-1","TP","LGV","HD","None")))) +
+  geom_pointrange(aes(x = or, xmin = lwr, xmax = upr, y = reorder(rti, desc(rti)), colour = variable), size = 0.06, linewidth = 0.2, fatten = 1.8) +
+  geom_vline(xintercept = 1, linetype = "dotted", linewidth = 0.2) +
+  geom_label(aes(x = or, y = rti, label = label), size = 6/.pt, label.size = NA, label.padding = unit(0.1,"cm"), hjust=0.48, nudge_y = 0.35, colour=colour_label) +
+  theme_classic(base_size = 6) +
+  my_theme() +
+  scale_x_continuous(breaks = c(0, 1, 2, 3),
+                     expand = expansion(mult = c(0.02, 0.02))) +
+  coord_trans(x = "log10", xlim = c(0.35,3.5)) +
+  scale_colour_manual(values="black", labels="aOR (95% CI) for HIV-positive") +
+  labs(x="Adjusted odds ratio (log scale)",y="",colour="",fill="") 
+
+plot <- (plot_vd1 + plot_vd2 + plot_layout(widths = c(2,1))) / 
+  (plot_ud1 + plot_ud2 + plot_layout(widths = c(2,1))) /
+  (plot_gu1 + plot_gu2 + plot_layout(widths = c(2,1))) +
+  plot_layout(heights = c(7,5,7), guides="collect") &
+  theme(legend.position="bottom")
+
+ggsave("./plots/figure_3.png", plot, width=15.4, height=18, units="cm", dpi=700)
+
