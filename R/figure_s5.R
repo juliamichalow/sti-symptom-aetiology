@@ -12,7 +12,7 @@ df_est_all <- read.csv("./estimates/trend_estimates_adjusted.csv") %>%
 
 df_est_naat <- read.csv("./estimates/trend_estimates_naat.csv") 
 
-df_study <- read_excel("appendix_studydata.xlsx", sheet='Study data') %>%
+df_study <- read_excel("./data/appendix_studydata_jan2024.xlsx", sheet='Study data') %>%
   filter(analysis == "Overall") %>%
   mutate(symptom = factor(symptom,levels=c("VD","UD","GU"), labels=c("Vaginal discharge","Urethral discharge","Genital ulcer")),
          region = case_when(unique_id == 618 ~ "Eastern Africa", TRUE~region), # assign study to Eastern Africa
@@ -44,12 +44,12 @@ df_sub_ud <- df_full_ud %>%
 
 df_full_gu <- df_est_all %>%
   filter(symptom=="Genital ulcer", region == "Sub-Saharan Africa") %>%
-  mutate(rti=factor(rti,levels=c("HSV","HSV-2","TP","HSV-1","HD","LGV","None")))
+  mutate(rti=factor(rti,levels=c("HSV","HSV-2","TP","LGV","HSV-1","HD","None")))
 
 df_sub_gu <- df_full_gu %>%
   left_join(year_range) %>%
   filter(year >= minyear & year <= maxyear)  %>%
-  mutate(rti=factor(rti,levels=c("HSV","HSV-2","TP","HSV-1","HD","LGV","None")))
+  mutate(rti=factor(rti,levels=c("HSV","HSV-2","TP","LGV","HSV-1","HD","None")))
 
 year_range_naat <- df_study %>%
   filter(test_plot=="NAAT", !rti=="CA") %>%
@@ -75,7 +75,7 @@ df_naat_sub_ud <- df_naat_full_ud %>%
 
 df_naat_full_gu <- df_naat_full %>%
   filter(symptom=="Genital ulcer") %>%
-  mutate(rti=factor(rti,levels=c("HSV","HSV-2","TP","HSV-1","LGV","HD")))
+  mutate(rti=factor(rti,levels=c("HSV","HSV-2","TP","LGV","HSV-1","HD")))
 
 df_naat_sub_gu <- df_naat_full_gu %>%
   filter(year >= minyear & year <= maxyear)
@@ -216,7 +216,7 @@ gu_naat <-  ggplot() +
   labs(x="", y="Genital ulcer \n Diagnosed proportion", colour="", fill="", tag = "C") 
 
 plot_naat <- (vd_naat / ud_naat / gu_naat) + 
-  plot_layout(heights=c(2,1,2),
+  plot_layout(heights=c(2,0.87,2),
               guides="collect") &
   theme(legend.position = "bottom",
         legend.box = "vertical",

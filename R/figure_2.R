@@ -9,7 +9,7 @@ library(patchwork)
 
 df_est <- read.csv("./estimates/trend_estimates_adjusted.csv")
 
-df_study <- read_excel("appendix_studydata.xlsx", sheet='Study data') %>%
+df_study <- read_excel("./data/appendix_studydata.xlsx", sheet='Study data') %>%
   filter(analysis == "Overall") %>%
   mutate(symptom = factor(symptom, levels=c("VD","UD","GU"), labels=c("Vaginal discharge","Urethral discharge","Genital ulcer")))
 
@@ -39,12 +39,12 @@ df_sub_ud <- df_full_ud %>%
 
 df_full_gu <- df_est %>%
   filter(symptom=="Genital ulcer", region == "Sub-Saharan Africa") %>%
-  mutate(rti=factor(rti,levels=c("HSV","HSV-2","TP","HSV-1","HD","LGV","None")))
+  mutate(rti=factor(rti,levels=c("HSV","HSV-2","TP","LGV","HSV-1","HD","None")))
 
 df_sub_gu <- df_full_gu %>%
   left_join(year_range) %>%
   filter(year >= minyear & year <= maxyear) %>%
-  mutate(rti=factor(rti,levels=c("HSV","HSV-2","TP","HSV-1","HD","LGV","None")))
+  mutate(rti=factor(rti,levels=c("HSV","HSV-2","TP","LGV","HSV-1","HD","None")))
 
 # Theme
 
@@ -154,8 +154,9 @@ gu_ssa <- ggplot() +
   labs(x="Study year", y="Genital ulcer \n Diagnosed proportion", colour="", fill="", tag = "C") 
 
 plot_ssa <- (vd_ssa / ud_ssa / gu_ssa) + 
-  plot_layout(heights=c(2,1,2),
+  plot_layout(heights=c(2,0.88,2),
               guides="collect") &
   theme(legend.position = "bottom")
 
-ggsave("./plots/figure_2.png", plot_ssa, width=15.4, height=17.5, units="cm", dpi=700)
+ggsave("./plots/figure_2.png", plot_ssa, width=16.2, height=19, units="cm", dpi=800)
+ggsave("./plots/figure_2.tiff", plot_ssa, width=16.2, height=19, units="cm", dpi=300)

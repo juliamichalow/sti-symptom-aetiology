@@ -5,8 +5,10 @@ library(glmmTMB)
 
 ### IMPORT DATA
 
-df <- read_excel("appendix_studydata.xlsx", sheet='Study data')
-population <- read_excel("appendix_studydata.xlsx", sheet='Population estimates')
+setwd("C:/Users/jhm21/OneDrive - Imperial College London/Analysis/Objective 2/X4. Shared data and code/Jan 2024")
+
+df <- read_excel("./data/appendix_studydata.xlsx", sheet='Study data')
+population <- read_excel("./data/appendix_studydata.xlsx", sheet='Population estimates')
   
 
 ### PREPARE DATASETS
@@ -16,6 +18,16 @@ df <- df %>%
          region = factor(region, levels = c("Southern Africa", "Eastern Africa", "Central and Western Africa"))) %>%  
   mutate(sex = factor(sex, levels=c("Female","Male","Male and female")),
          age_group = factor(age_group, levels = c("≥25 years","<25 years")),
+         cat1 = fct_collapse(cat1, n = c("u","n")), cat2 = fct_collapse(cat2, n = c("u","n")),
+         cat3 = fct_collapse(cat3, n = c("u","n")), cat4 = fct_collapse(cat4, n = c("u","n")),
+         cat5 = fct_collapse(cat5, n = c("u","n")), cat6 = fct_collapse(cat6, n = c("u","n")),
+         cat7 = fct_collapse(cat7, n = c("u","n")), cat8 = fct_collapse(cat8, n = c("u","n")),
+         cat9 = fct_collapse(cat9, n = c("u","n")), cat10 = fct_collapse(cat10, n = c("u","n")),
+         cat1 = fct_relevel(cat1, "y"), cat2 = fct_relevel(cat2, "y"),
+         cat3 = fct_relevel(cat3, "y"), cat4 = fct_relevel(cat4, "y"),
+         cat5 = fct_relevel(cat5, "y"), cat6 = fct_relevel(cat6, "y"),
+         cat7 = fct_relevel(cat7, "y"), cat8 = fct_relevel(cat8, "y"),
+         cat9 = fct_relevel(cat9, "y"), cat10 = fct_relevel(cat10, "y"),
          year_regression = year - 2015)
 
 population <- population %>%
@@ -31,30 +43,17 @@ df_ud_overall <- df %>% filter(symptom=="UD", analysis=="Overall") %>% mutate(si
 df_gu_overall <- df %>% filter(symptom=="GU", analysis=="Overall") %>% mutate(sid = row_number())
 
 # Observations based on NAAT testing
-
 df_vd_overall_naat <- df %>% filter(symptom=="VD", analysis=="Overall", test_category=="NAAT", !rti=="CA") %>% mutate(sid = row_number()) # Leave out 2 CA data points
 df_ud_overall_naat <- df %>% filter(symptom=="UD", analysis=="Overall", test_category=="NAAT") %>% mutate(sid = row_number())
 df_gu_overall_naat <- df %>% filter(symptom=="GU", analysis=="Overall", test_category=="NAAT") %>% mutate(sid = row_number())
 
-## 2. Risk of bias analysis
-
-# Observations from studies rated lower and moderate risk of bias
-df_vd_overall_lowmod <- df %>% filter(symptom=="VD", analysis=="Overall", rob %in% c("Lower","Moderate")) %>% mutate(sid = row_number())
-df_ud_overall_lowmod <- df %>% filter(symptom=="UD", analysis=="Overall", rob %in% c("Lower","Moderate")) %>% mutate(sid = row_number())
-df_gu_overall_lowmod <- df %>% filter(symptom=="GU", analysis=="Overall", rob %in% c("Lower","Moderate")) %>% mutate(sid = row_number())
-
-# Observations from studies rated lower risk of bias 
-df_vd_overall_low <- df %>% filter(symptom=="VD", analysis=="Overall", rob %in% c("Lower"), !rti=="CA") %>% mutate(sid = row_number()) # Leave out single CA data point
-df_ud_overall_low <- df %>% filter(symptom=="UD", analysis=="Overall", rob %in% c("Lower")) %>% mutate(sid = row_number())
-df_gu_overall_low <- df %>% filter(symptom=="GU", analysis=="Overall", rob %in% c("Lower")) %>% mutate(sid = row_number())
-
-## 3. HIV-stratified analysis
+## 2. HIV-stratified analysis
 
 df_vd_hiv <- df %>% filter(symptom=="VD", analysis=="HIV-stratified") %>% mutate(sid = row_number())
 df_ud_hiv <- df %>% filter(symptom=="UD", analysis=="HIV-stratified") %>% mutate(sid = row_number())
 df_gu_hiv <- df %>% filter(symptom=="GU", analysis=="HIV-stratified") %>% mutate(sid = row_number())
 
-## 4. Age-stratified analysis
+## 3. Age-stratified analysis
 
 df_vd_age <- df %>% filter(symptom=="VD", analysis=="Age-stratified") %>% mutate(sid = row_number())
 df_ud_age <- df %>% filter(symptom=="UD", analysis=="Age-stratified") %>% mutate(sid = row_number())
@@ -111,30 +110,27 @@ mod_vd_naat_unadj <- glmmTMB(form1_overall_unadj, data = df_vd_overall_naat, fam
 mod_ud_naat_unadj <- glmmTMB(form1_overall_unadj, data = df_ud_overall_naat, family = binomial(link="logit"),
                            control=glmmTMBControl(optimizer=optim,optArgs=list(method="BFGS")))
 
-mod_gu_naat_unadj <- glmmTMB(form2_overall_unadj, data = df_gu_overall_naat, family = binomial(link="logit"))
+mod_gu_naat_unadj <- glmmTMB(form2_overall_unadj, data = df_gu_overall_naat, family = binomial(link="logit"),
                            control=glmmTMBControl(optimizer=optim,optArgs=list(method="BFGS")))
 
-## 2. Risk of bias analysis with observations adjusted for diagnostic test performance
+## 1.5 Analysis of critical appraisal criteria, using observations adjusted for diagnostic test performance
 
-mod_vd_overall_lowmod <- glmmTMB(form1_overall_adj, data = df_vd_overall_lowmod, family = binomial(link="logit"),
-                                     control=glmmTMBControl(optimizer=optim,optArgs=list(method="BFGS")))
+form1_overall_crit <- cbind(adj_num,(adj_denom-adj_num)) ~ -1 + rti + rti:year_regression + rti:cat1 + rti:cat2 + rti:cat3 + 
+  rti:cat4 + rti:cat5 + rti:cat6 + rti:cat7 + rti:cat8 + rti:cat9 + rti:cat10 + (1|region:rti) + (1 | sid)
 
-mod_vd_overall_low <- glmmTMB(form1_overall_adj, data = df_vd_overall_low, family = binomial(link="logit"),
+form2_overall_crit <- cbind(adj_num,(adj_denom-adj_num)) ~ -1 + rti + rti:year_regression + rti:sex + rti:cat1 + rti:cat2 + rti:cat3 + 
+  rti:cat4 + rti:cat5 + rti:cat6 + rti:cat7 + rti:cat8 + rti:cat9 + rti:cat10 + (1|region:rti) + (1 | sid)
+
+mod_vd_overall_crit <- glmmTMB(form1_overall_crit, data = df_vd_overall, family = binomial(link="logit"),
                                   control=glmmTMBControl(optimizer=optim,optArgs=list(method="BFGS")))
 
-mod_ud_overall_lowmod <- glmmTMB(form1_overall_adj, data = df_ud_overall_lowmod, family = binomial(link="logit"),
-                                     control=glmmTMBControl(optimizer=optim,optArgs=list(method="BFGS")))
-
-mod_ud_overall_low <- glmmTMB(form1_overall_adj, data = df_ud_overall_low, family = binomial(link="logit"),
+mod_ud_overall_crit <- glmmTMB(form1_overall_crit, data = df_ud_overall, family = binomial(link="logit"),
                                   control=glmmTMBControl(optimizer=optim,optArgs=list(method="BFGS")))
 
-mod_gu_overall_lowmod <- glmmTMB(form1_overall_adj, data = df_gu_overall_lowmod, family = binomial(link="logit"),
-                                     control=glmmTMBControl(optimizer=optim,optArgs=list(method="BFGS")))
-
-mod_gu_overall_low <- glmmTMB(form1_overall_adj, data = df_gu_overall_low, family = binomial(link="logit"),
+mod_gu_overall_crit <- glmmTMB(form2_overall_crit, data = df_gu_overall, family = binomial(link="logit"),
                                   control=glmmTMBControl(optimizer=optim,optArgs=list(method="BFGS")))
 
-## 3. HIV-stratified estimates
+## 2. HIV-stratified estimates
 
 form1_hiv <- cbind(adj_num,(adj_denom-adj_num)) ~ -1 + rti + rti:year_regression + rti:hiv_status + (1|region:rti) + (1 | sid)
 form2_hiv <- cbind(adj_num,(adj_denom-adj_num)) ~ -1 + rti + rti:year_regression + rti:sex + rti:hiv_status + (1|region:rti) + (1 | sid)
@@ -360,66 +356,6 @@ dat_naat <- rbind(dat_naat_adj, dat_naat_unadj)
 
 write.csv(dat_naat, "./estimates/trend_estimates_naat.csv", row.names = FALSE, na = "")
 
-## 2. Risk of bias analysis 
-
-prediction_vd_overall_lowmod <- predict(mod_vd_overall_lowmod, newdata=df_vd_predict, type="link", se.fit = TRUE, allow.new.levels=TRUE)
-prediction_vd_overall_low <- predict(mod_vd_overall_low, newdata=df_vd_predict %>% filter(!rti=="CA"), type="link", se.fit = TRUE, allow.new.levels=TRUE)
-
-prediction_ud_overall_lowmod <- predict(mod_ud_overall_lowmod, newdata=df_ud_predict, type="link", se.fit = TRUE, allow.new.levels=TRUE)
-prediction_ud_overall_low <- predict(mod_ud_overall_low, newdata=df_ud_predict, type="link", se.fit = TRUE, allow.new.levels=TRUE)
-
-prediction_gu_overall_lowmod <- predict(mod_gu_overall_lowmod, newdata=df_gu_predict, type="link", se.fit = TRUE, allow.new.levels=TRUE)
-prediction_gu_overall_low <- predict(mod_gu_overall_low, newdata=df_gu_predict, type="link", se.fit = TRUE, allow.new.levels=TRUE)
-
-
-df_predict_overall_rob <- rbind(
-  left_join(
-    df_vd_predict %>%
-      mutate(all_predict_logit = prediction_vd_overall_adj$fit,
-             all_se_logit = prediction_vd_overall_adj$se.fit,
-             lowmod_predict_logit = prediction_vd_overall_lowmod$fit,
-             lowmod_se_logit = prediction_vd_overall_lowmod$se.fit),
-    df_vd_predict %>%
-      filter(!rti=="CA") %>%
-      mutate(low_predict_logit = prediction_vd_overall_low$fit,
-             low_se_logit = prediction_vd_overall_low$se.fit)),
-  df_ud_predict %>%
-    mutate(all_predict_logit = prediction_ud_overall_adj$fit,
-           all_se_logit = prediction_ud_overall_adj$se.fit,
-           lowmod_predict_logit = prediction_ud_overall_lowmod$fit,
-           lowmod_se_logit = prediction_ud_overall_lowmod$se.fit,
-           low_predict_logit = prediction_ud_overall_low$fit,
-           low_se_logit = prediction_ud_overall_low$se.fit),
-  df_gu_predict %>%
-    mutate(all_predict_logit = prediction_gu_overall_adj$fit,
-           all_se_logit = prediction_gu_overall_adj$se.fit,
-           lowmod_predict_logit = prediction_gu_overall_lowmod$fit,
-           lowmod_se_logit = prediction_gu_overall_lowmod$se.fit,
-           low_predict_logit = prediction_gu_overall_low$fit,
-           low_se_logit = prediction_gu_overall_low$se.fit)) %>%
-  mutate(symptom = factor(symptom,levels=c("Vaginal discharge","Urethral discharge","Genital ulcer")),
-         rti = factor(rti,levels=c("BV","CA","CS","CT","HD","HSV","HSV-1","HSV-2","LGV","MG","NG","TV","TP","None")))
-
-dat_overall_rob <- df_predict_overall_rob %>%
-  left_join(population, by = c("region","sex")) %>%
-  group_by(symptom, rti, year) %>%
-  summarise(est_all = plogis(sum(all_predict_logit*population)/sum(population)),
-            lwr_all = plogis(sum(all_predict_logit*population)/sum(population) - 1.96*sum(all_se_logit*population)/sum(population)),
-            upr_all = plogis(sum(all_predict_logit*population)/sum(population) + 1.96*sum(all_se_logit*population)/sum(population)),
-            est_lowmod = plogis(sum(lowmod_predict_logit*population)/sum(population)),
-            lwr_lowmod = plogis(sum(lowmod_predict_logit*population)/sum(population) - 1.96*sum(lowmod_se_logit*population)/sum(population)),
-            upr_lowmod = plogis(sum(lowmod_predict_logit*population)/sum(population) + 1.96*sum(lowmod_se_logit*population)/sum(population)),
-            est_low = plogis(sum(low_predict_logit*population)/sum(population)),
-            lwr_low = plogis(sum(low_predict_logit*population)/sum(population) - 1.96*sum(low_se_logit*population)/sum(population)),
-            upr_low = plogis(sum(low_predict_logit*population)/sum(population) + 1.96*sum(low_se_logit*population)/sum(population))) %>%
-  pivot_longer(cols=est_all:upr_low) %>%
-  separate(name, into=c("parameter","model")) %>% 
-  pivot_wider(names_from = parameter, values_from = value) %>%
-  mutate(model = factor(model, levels=c("all","lowmod","low"), labels=c("Lower, moderate, and higher","Lower and moderate","Lower only"))) %>%
-  mutate(region = "Sub-Saharan Africa")
-
-write.csv(dat_overall_rob, "./estimates/trend_estimates_rob.csv", row.names = FALSE, na = "")
-
 ## 2. HIV-stratified analysis
 
 prediction_vd_hiv <- predict(mod_vd_hiv, newdata=df_vd_predict_hiv, type="link", se.fit = TRUE, allow.new.levels=TRUE)
@@ -497,28 +433,34 @@ table_prep <- function(model){
            variable = gsub("sex","",variable),
            variable = gsub("age_group","",variable),
            variable = gsub("hiv_status","",variable),
-           variable = gsub("year_regression","year",variable))
-  
+           variable = gsub("year_regression","year",variable),
+           variable = gsub("cat1n","Q1 No/unsure", variable),
+           variable = gsub("cat2n","Q2 No/unsure", variable),
+           variable = gsub("cat3n","Q3 No/unsure", variable),
+           variable = gsub("cat4n","Q4 No/unsure", variable),
+           variable = gsub("cat5n","Q5 No/unsure", variable),
+           variable = gsub("cat6n","Q6 No/unsure", variable),
+           variable = gsub("cat7n","Q7 No/unsure", variable),
+           variable = gsub("cat8n","Q8 No/unsure", variable),
+           variable = gsub("cat9n","Q9 No/unsure", variable),
+           variable = gsub("cat10n","Q10 No/unsure", variable))
 }
 
 table_prep(mod_vd_overall_adj) %>% write.csv("./tables/vd_overall_adj.csv", row.names=FALSE)
 table_prep(mod_vd_overall_unadj) %>% write.csv("./tables/vd_overall_unadj.csv", row.names=FALSE)
-table_prep(mod_vd_overall_low) %>% write.csv("./tables/vd_overall_rob_low.csv", row.names=FALSE)
-table_prep(mod_vd_overall_lowmod) %>% write.csv("./tables/vd_overall_rob_lowmod.csv", row.names=FALSE)
+table_prep(mod_vd_overall_crit) %>% write.csv("./tables/vd_overall_crit.csv", row.names=FALSE)
 table_prep(mod_vd_hiv) %>% write.csv("./tables/vd_hiv.csv", row.names=FALSE)
 table_prep(mod_vd_age) %>% write.csv("./tables/vd_age.csv", row.names=FALSE)
 
 table_prep(mod_ud_overall_adj) %>% write.csv("./tables/ud_overall_adj.csv", row.names=FALSE)
 table_prep(mod_ud_overall_unadj) %>% write.csv("./tables/ud_overall_unadj.csv", row.names=FALSE)
-table_prep(mod_ud_overall_low) %>% write.csv("./tables/ud_overall_rob_low.csv", row.names=FALSE)
-table_prep(mod_ud_overall_lowmod) %>% write.csv("./tables/ud_overall_rob_lowmod.csv", row.names=FALSE)
+table_prep(mod_ud_overall_crit) %>% write.csv("./tables/ud_overall_crit.csv", row.names=FALSE)
 table_prep(mod_ud_hiv) %>% write.csv("./tables/ud_hiv.csv", row.names=FALSE)
 table_prep(mod_ud_age) %>% write.csv("./tables/ud_age.csv", row.names=FALSE)
 
 table_prep(mod_gu_overall_adj) %>% write.csv("./tables/gu_overall_adj.csv", row.names=FALSE)
 table_prep(mod_gu_overall_unadj) %>% write.csv("./tables/gu_overall_unadj.csv", row.names=FALSE)
-table_prep(mod_gu_overall_low) %>% write.csv("./tables/gu_overall_rob_low.csv", row.names=FALSE)
-table_prep(mod_gu_overall_lowmod) %>% write.csv("./tables/gu_overall_rob_lowmod.csv", row.names=FALSE)
+table_prep(mod_gu_overall_crit) %>% write.csv("./tables/gu_overall_crit.csv", row.names=FALSE)
 table_prep(mod_gu_hiv) %>% write.csv("./tables/gu_hiv.csv", row.names=FALSE)
 table_prep(mod_gu_age) %>% write.csv("./tables/gu_age.csv", row.names=FALSE)
 
@@ -543,7 +485,7 @@ or_extract <- function(model){
   
 }
 
-## HIV-stratified analysis
+# HIV-stratified analysis
 
 dat_or_hiv <- rbind(
   or_extract(mod_vd_hiv) %>% mutate(symptom = "Vaginal discharge"),
@@ -552,7 +494,7 @@ dat_or_hiv <- rbind(
 
 write.csv(dat_or_hiv, "./estimates/hiv_or.csv", row.names = FALSE, na = "")
 
-## Age-stratified analysis
+# Age-stratified analysis
 
 dat_or_age <- rbind(
   or_extract(mod_vd_age) %>% mutate(symptom = "Vaginal discharge"),
@@ -561,3 +503,77 @@ dat_or_age <- rbind(
 
 write.csv(dat_or_age, "./estimates/age_or.csv", row.names = FALSE, na = "")
 
+or_extract <- function(model){
+  
+  coef(summary(model))$cond %>%
+    as.data.frame() %>%
+    rownames_to_column("variable") %>%
+    filter(grepl("cat",variable)) %>%
+    mutate(variable = gsub("rti","",variable),
+           variable = gsub("cat","Q",variable)) %>%
+    separate(variable,sep = ":", into=c("rti","category")) %>%
+    mutate(category = gsub("n","",category),
+           colour = case_when(`Pr(>|z|)` < 0.05 ~ "y", TRUE ~ "n")) %>%
+    mutate(or = exp(Estimate),
+           lwr = exp(Estimate - 1.96*`Std. Error`),
+           upr = exp(Estimate + 1.96*`Std. Error`),
+           label = paste0(sprintf(or,fmt = '%#.1f')," (",sprintf(lwr,fmt = '%#.1f'),"-",sprintf(upr,fmt = '%#.1f'),")")) %>%
+    select(rti, category, or, lwr, upr, label, colour)
+  
+}
+
+# Risk of bias analysis
+
+dat_or_crit <- rbind(
+  or_extract(mod_vd_overall_crit) %>% mutate(symptom = "Vaginal discharge"),
+  or_extract(mod_ud_overall_crit) %>% mutate(symptom = "Urethral discharge"),
+  or_extract(mod_gu_overall_crit) %>% mutate(symptom = "Genital ulcer"))
+
+write.csv(dat_or_crit, "./estimates/crit_or.csv", row.names = FALSE, na = "")
+
+## QUANTIFY HETEROGENEITY
+
+variance_output <- function(mod, df) {
+  
+  var <- insight::get_variance(mod, tolerance = 1e-100)
+  # var.fixed is variance of the matrix-multiplication β∗X (parameter vector by model matrix)
+  # var.random is the mean variance of random effects in the model, according to Johnson 2014 equation 10
+  # var.residual is combination of var.distribution and var.dispersion, according to Nakagawa 2017
+  # Distribution variance is variation that comes from expected variability in binomial distribution 
+  # Overdispersion variance is the additional observation-level variation, that is more than expected from the binomial distribution
+  # Dispersion variance is the same as having an observation-level random effect (therefore var.dispersion and variance for sid intercept are the same)
+  
+  # tolerance level set to very small to ensure random effect variance included for model with almost zero variance (gu model)
+  
+    # get_variance() assumes a binary outcome and doesn't account for cbind(n, y-n) formulation of binomial model
+  
+  # If binary event E happens with probability p, then the variance is var(E) = p * (1-p)
+  # If do the same n times and get y results "true", then y ~ binomial(n, p) and var(y) = n * p * (1-p) 
+  # If interested in the proportion w = y / n , then var(w) = var(y/n) = 1/n^2 * var(y) = p * (1 - p) / n = var(E) / n
+  
+  # Therefore, divide $var.distribution (has value 3.29, which is the theoretical variance on logistic distribution for 1 binary event) by mean sample size
+  
+  output <- data.frame(
+    var_fixed_random = var$var.fixed + var$var.random,
+    var_dispersion = var$var.dispersion,
+    var_distribution = var$var.distribution/mean(df$adj_denom), # divide distribution variance by average sample size
+    var_total = var$var.fixed + var$var.random + var$var.dispersion + var$var.distribution/mean(df$adj_denom)) %>%
+    pivot_longer(cols=everything()) %>%
+    mutate(percent = sprintf("%.2f",value/(var$var.fixed + var$var.random + var$var.dispersion + var$var.distribution/mean(df$adj_denom))*100),
+           value = sprintf("%.2f", value))
+  
+  return(output)
+  
+}
+
+variance_output(mod_vd_overall_adj, df_vd_overall)
+variance_output(mod_ud_overall_adj, df_ud_overall)
+variance_output(mod_gu_overall_adj, df_gu_overall)
+
+variance_output(mod_vd_hiv, df_vd_hiv)
+variance_output(mod_ud_hiv, df_ud_hiv)
+variance_output(mod_gu_hiv, df_gu_hiv)
+
+variance_output(mod_vd_age, df_vd_age)
+variance_output(mod_ud_age, df_ud_age)
+variance_output(mod_gu_age, df_gu_age)
