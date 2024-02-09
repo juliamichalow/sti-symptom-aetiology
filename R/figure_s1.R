@@ -7,7 +7,7 @@ library(patchwork)
 
 # Load and prepare data
 
-df_study <- read_excel("appendix_studydata.xlsx", sheet='Study data') %>%
+df_study <- read_excel("./data/appendix_studydata_jan2024.xlsx", sheet='Study data') %>%
   mutate(symptom = factor(symptom, levels=c("VD","UD","GU"), labels=c("Vaginal discharge","Urethral discharge","Genital ulcer"))) %>%
   # assign study variable for publications from the same study
   mutate(study = case_when(
@@ -22,7 +22,7 @@ df_study <- read_excel("appendix_studydata.xlsx", sheet='Study data') %>%
     unique_id %in% c(368,473,497,508,509) ~ "study_9", # Zimbabwe etiology study
     TRUE ~ NA)) 
 
-shape <- sf::st_read("world.geojson") %>%
+shape <- sf::st_read("./data/world.geojson") %>%
   # Rename countries to match
   mutate(name = case_when(name == "Ivory Coast" ~ "Côte d'Ivoire",
                           name == "Democratic Republic of the Congo" ~ "Democratic Republic of Congo",
@@ -84,7 +84,7 @@ my_theme <- function(){
 plot_country <- ggplot(df_country) +
   geom_sf(aes(fill = n_study, geometry = geometry)) +
   facet_wrap(~symptom) +
-  scale_fill_viridis_c(direction=-1, breaks = c(0,2,4,6,8,10,12,14,16,18)) +
+  scale_fill_viridis_c(direction=-1, breaks = c(0,2,4,6,8,10,12,14,16,18), na.value="lightgrey") +
   theme_minimal(base_size=6) +
   my_theme() +
   labs(fill="Number of \n studies")

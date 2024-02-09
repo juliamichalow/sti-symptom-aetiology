@@ -39,7 +39,7 @@ colour_hiv <- c("#4F4F4F","#54AFCC")
 colour_label <- "grey20"
 
 plot_vd1 <- ggplot(df_est %>% filter(symptom == "Vaginal discharge") %>%
-                     mutate(rti = factor(rti, levels=c("MG","TV","BV","NG","CT","CS","None")))) +
+                     mutate(rti = factor(rti, levels=c("CS","BV","CT","TV","NG","MG","None")))) +
   geom_col(aes(x = est, y = reorder(rti, desc(rti)), fill = hiv_status), position = position_dodge2(0.7, reverse = TRUE), width = 0.7) +
   geom_linerange(aes(xmin = lwr, xmax = upr, y = reorder(rti, desc(rti)), group = hiv_status), 
                  position = position_dodge2(0.7, reverse = TRUE), size = 0.2) +
@@ -54,7 +54,7 @@ plot_vd1 <- ggplot(df_est %>% filter(symptom == "Vaginal discharge") %>%
   labs(x="",y="Vaginal discharge",tag="A") 
 
 plot_ud1 <- ggplot(df_est %>% filter(symptom == "Urethral discharge") %>%
-                     mutate(rti = factor(rti, levels=c("TV","NG","MG","CT","None")))) +
+                     mutate(rti = factor(rti, levels=c("NG","CT","MG","TV","None")))) +
   geom_col(aes(x = est, y = reorder(rti, desc(rti)), fill = hiv_status), position = position_dodge2(0.7, reverse = TRUE), width = 0.7) +
   geom_linerange(aes(xmin = lwr, xmax = upr, y = reorder(rti, desc(rti)), group = hiv_status), 
                  position = position_dodge2(0.7, reverse = TRUE), size = 0.2) +
@@ -69,7 +69,7 @@ plot_ud1 <- ggplot(df_est %>% filter(symptom == "Urethral discharge") %>%
   labs(x="",y="Urethral discharge",tag="B") 
 
 plot_gu1 <- ggplot(df_est %>% filter(symptom == "Genital ulcer") %>%
-                     mutate(rti = factor(rti, levels=c("HSV","HSV-2","HSV-1","TP","LGV","HD","None")))) +
+                     mutate(rti = factor(rti, levels=c("HSV","HSV-2","TP","LGV","HSV-1","HD","None")))) +
   geom_col(aes(x = est, y = reorder(rti, desc(rti)), fill = hiv_status), position = position_dodge2(0.7, reverse = TRUE), width = 0.7) +
   geom_linerange(aes(xmin = lwr, xmax = upr, y = reorder(rti, desc(rti)), group = hiv_status), 
                  position = position_dodge2(0.7, reverse = TRUE), size = 0.2) +
@@ -84,7 +84,7 @@ plot_gu1 <- ggplot(df_est %>% filter(symptom == "Genital ulcer") %>%
   labs(x="Pooled diagnosed proportion",y="Genital ulcer",tag="C") 
 
 plot_vd2 <- ggplot(df_or %>% filter(symptom == "Vaginal discharge") %>%
-                     mutate(rti = factor(rti, levels=c("MG","TV","BV","NG","CT","CS","None")))) +
+                     mutate(rti = factor(rti, levels=c("CS","BV","CT","TV","NG","MG","None")))) +
   geom_pointrange(aes(x = or, xmin = lwr, xmax = upr, y = reorder(rti, desc(rti)), colour = variable), size = 0.06, linewidth = 0.2, fatten = 1.8) +
   geom_vline(xintercept = 1, linetype = "dotted", linewidth = 0.2) +
   geom_label(aes(x = or, y = rti, label = label), size = 6/.pt, label.size = NA, label.padding = unit(0.1,"cm"), hjust=0.48, nudge_y = 0.35, colour=colour_label) +
@@ -97,7 +97,7 @@ plot_vd2 <- ggplot(df_or %>% filter(symptom == "Vaginal discharge") %>%
   labs(x="",y="",colour="",fill="") 
 
 plot_ud2 <- ggplot(df_or %>% filter(symptom == "Urethral discharge") %>%
-                     mutate(rti = factor(rti, levels=c("TV","NG","MG","CT","None")))) +
+                     mutate(rti = factor(rti, levels=c("NG","CT","MG","TV","None")))) +
   geom_pointrange(aes(x = or, xmin = lwr, xmax = upr, y = reorder(rti, desc(rti)), colour = variable), size = 0.06, linewidth = 0.2, fatten = 1.8) +
   geom_vline(xintercept = 1, linetype = "dotted", linewidth = 0.2) +
   geom_label(aes(x = or, y = rti, label = label), size = 6/.pt, label.size = NA, label.padding = unit(0.1,"cm"), hjust=0.48, nudge_y = 0.35, colour=colour_label) +
@@ -110,7 +110,7 @@ plot_ud2 <- ggplot(df_or %>% filter(symptom == "Urethral discharge") %>%
   labs(x="",y="",colour="",fill="") 
 
 plot_gu2 <- ggplot(df_or %>% filter(symptom == "Genital ulcer") %>%
-                     mutate(rti = factor(rti, levels=c("HSV","HSV-2","HSV-1","TP","LGV","HD","None")))) +
+                     mutate(rti = factor(rti, levels=c("HSV","HSV-2","TP","LGV","HSV-1","HD","None")))) +
   geom_pointrange(aes(x = or, xmin = lwr, xmax = upr, y = reorder(rti, desc(rti)), colour = variable), size = 0.06, linewidth = 0.2, fatten = 1.8) +
   geom_vline(xintercept = 1, linetype = "dotted", linewidth = 0.2) +
   geom_label(aes(x = or, y = rti, label = label), size = 6/.pt, label.size = NA, label.padding = unit(0.1,"cm"), hjust=0.48, nudge_y = 0.35, colour=colour_label) +
@@ -128,5 +128,6 @@ plot <- (plot_vd1 + plot_vd2 + plot_layout(widths = c(2,1))) /
   plot_layout(heights = c(7,5,7), guides="collect") &
   theme(legend.position="bottom")
 
-ggsave("./plots/figure_3.png", plot, width=15.4, height=18, units="cm", dpi=700)
+ggsave("./plots/figure_3.png", plot, width=16.2, height=18.3, units="cm", dpi=800)
+ggsave("./plots/figure_3.tiff", plot, width=16.2, height=18.3, units="cm", dpi=300)
 
