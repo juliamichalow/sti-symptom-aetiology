@@ -48,7 +48,7 @@ plot_vd <- df_or %>%
   mutate(rti = factor(rti, levels=c("CS","BV","CA","CT","TV","NG","MG","None")),
          category = factor(category, levels=c("Q1","Q2","Q3","Q4","Q5","Q6","Q7","Q8","Q9","Q10"))) %>%
   ggplot() +
-  geom_pointrange(aes(x = or, xmin = lwr, xmax = upr, y = reorder(category, desc(category)), colour=colour), size = 0.06, linewidth = 0.2, fatten = 1.8) +
+  geom_pointrange(aes(x = or, xmin = lwr, xmax = upr, y = reorder(category, desc(category))), size = 0.06, linewidth = 0.2, fatten = 1.8) +
   geom_vline(xintercept = 1, linetype = "dotted", linewidth = 0.2) +
   #geom_label(aes(x = or, y = category, label = label), size = 4/.pt, label.size = NA, label.padding = unit(0.1,"cm"), hjust=0.55, nudge_y = 0.35, colour = colour_label) +
   geom_label(aes(x = 3500, y = category, label = label), size = 6/.pt, label.size = NA, label.padding = unit(0.08,"cm"), hjust=1, colour = colour_label) +
@@ -58,7 +58,6 @@ plot_vd <- df_or %>%
   theme(legend.position="none") +
   scale_x_continuous(breaks = c(0.1, 1, 10, 100), labels = c("0.1", "1", "10", "100")) +
   coord_trans(x = "log10", xlim = c(0.025, 2000)) +
-  scale_colour_manual(values=c("black","red3"), labels=expression(p > 0.5, p <= 0.5)) +
   labs(x="Adjusted odds ratio (log scale)",y="Vaginal discharge",colour="",fill="",tag="A")
 
 plot_ud <- df_or %>%
@@ -66,7 +65,7 @@ plot_ud <- df_or %>%
   mutate(rti = factor(rti, levels=c("NG","CT","MG","TV","None")),
          category = factor(category, levels=c("Q1","Q2","Q3","Q4","Q5","Q6","Q7","Q8","Q9","Q10"))) %>%
   ggplot() +
-  geom_pointrange(aes(x = or, xmin = lwr, xmax = upr, y = reorder(category, desc(category)), colour=colour), size = 0.06, linewidth = 0.2, fatten = 1.8) +
+  geom_pointrange(aes(x = or, xmin = lwr, xmax = upr, y = reorder(category, desc(category))), size = 0.06, linewidth = 0.2, fatten = 1.8) +
   geom_vline(xintercept = 1, linetype = "dotted", linewidth = 0.2) +
   #geom_label(aes(x = or, y = category, label = label), size = 4/.pt, label.size = NA, label.padding = unit(0.1,"cm"), hjust=0.55, nudge_y = 0.35, colour = colour_label) +
   geom_label(aes(x = 3500, y = category, label = label), size = 6/.pt, label.size = NA, label.padding = unit(0.08,"cm"), hjust=1, colour = colour_label) +
@@ -76,7 +75,6 @@ plot_ud <- df_or %>%
   theme(legend.position="none") +
   scale_x_continuous(breaks = c(0.1, 1, 10, 100), labels = c("0.1", "1", "10", "100")) +
   coord_trans(x = "log10", xlim = c(0.025, 2000)) +
-  scale_colour_manual(values=c("black","red3"), labels=expression(p > 0.5, p <= 0.5)) +
   labs(x="Adjusted odds ratio (log scale)",y="Urethral discharge",colour="",fill="",tag="B")
 
 plot_gu <- df_or %>%
@@ -84,7 +82,7 @@ plot_gu <- df_or %>%
   mutate(rti = factor(rti, levels=c("HSV","HSV-2","TP","LGV","HSV-1","HD","None")),
          category = factor(category, levels=c("Q1","Q2","Q3","Q4","Q5","Q6","Q7","Q8","Q9","Q10"))) %>%
   ggplot() +
-  geom_pointrange(aes(x = or, xmin = lwr, xmax = upr, y = reorder(category, desc(category)), colour=colour), size = 0.06, linewidth = 0.2, fatten = 1.8) +
+  geom_pointrange(aes(x = or, xmin = lwr, xmax = upr, y = reorder(category, desc(category))), size = 0.06, linewidth = 0.2, fatten = 1.8) +
   geom_vline(xintercept = 1, linetype = "dotted", linewidth = 0.2) +
   #geom_label(aes(x = or, y = category, label = label), size = 4/.pt, label.size = NA, label.padding = unit(0.1,"cm"), hjust=0.55, nudge_y = 0.35, colour = colour_label) +
   geom_label(aes(x = 3500, y = category, label = label), size = 6/.pt, label.size = NA, label.padding = unit(0.08,"cm"), hjust=1, colour = colour_label) +
@@ -93,7 +91,6 @@ plot_gu <- df_or %>%
   my_theme() +
   scale_x_continuous(breaks = c(0.1, 1, 10, 100), labels = c("0.1", "1", "10", "100")) +
   coord_trans(x = "log10", xlim = c(0.02, 2000)) +
-  scale_colour_manual(values=c("black","red3"), labels=expression(p > 0.5, p <= 0.5)) +
   labs(x="Adjusted odds ratio (log scale)",y="Genital ulcer",colour="",fill="",tag="C")
 
 ggsave("./plots/figure_s3_A.png", plot_vd, width=17.5, height=14, units="cm", dpi=700)
