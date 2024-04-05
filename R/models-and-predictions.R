@@ -5,8 +5,6 @@ library(glmmTMB)
 
 ### IMPORT DATA
 
-setwd("C:/Users/jhm21/OneDrive - Imperial College London/Analysis/Objective 2/X4. Shared data and code/Jan 2024")
-
 df <- read_excel("./data/appendix_studydata.xlsx", sheet='Study data')
 population <- read_excel("./data/appendix_studydata.xlsx", sheet='Population estimates')
   
