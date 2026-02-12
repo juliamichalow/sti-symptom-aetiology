@@ -1,5 +1,6 @@
 # sti-symptom-aetiology
 Code for the paper:
+
 Michalow, Julia, et al. "Aetiology of vaginal discharge, urethral discharge, and genital ulcer in sub-Saharan Africa: A systematic review and meta-regression." PLoS Medicine 21.5 (2024): e1004385.
 
 ## File structure
